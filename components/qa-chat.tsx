@@ -1,83 +1,74 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
-import { Send, Loader2, MessageSquare, Bot, User } from "lucide-react"
+import { chatAssistant } from "@/lib/api";
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Send, Loader2, MessageSquare, Bot, User } from "lucide-react";
 
-import { useToast } from "@/hooks/use-toast"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Message {
-  role: "user" | "assistant"
-  content: string
+  role: "user" | "assistant";
+  content: string;
 }
 
 interface QAChatProps {
-  analysis?: any
+  analysis?: any;
 }
 
 export function QAChat({ analysis }: QAChatProps) {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [threadId, setThreadId] = useState<string | null>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const { toast } = useToast()
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [threadId, setThreadId] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages])
+  }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim()) return
+    if (!input.trim()) return;
 
-    const userMessage: Message = { role: "user", content: input }
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-    setLoading(true)
+    const userMessage: Message = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
 
     try {
-      const response = await fetch("https://struttingly-chargeless-aubri.ngrok-free.dev/chat-assistant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: input,
-          thread_id: threadId,
-          model: "gemini-2.5-pro",
-          agent_config: {},
-        }),
-      })
-
-      if (!response.ok) throw new Error("Chat failed")
-
-      const data = await response.json()
+      const data = await chatAssistant({
+        message: input,
+        thread_id: threadId,
+      });
 
       if (data.thread_id && !threadId) {
-        setThreadId(data.thread_id)
+        setThreadId(data.thread_id);
       }
 
       const assistantMessage: Message = {
         role: "assistant",
         content: data.response || data.message || "No response received",
-      }
-      setMessages((prev) => [...prev, assistantMessage])
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error("[v0] Chat error:", error)
+      console.error("[v0] Chat error:", error);
       toast({
         title: "Chat failed",
         description: "Failed to get response. Please try again.",
         variant: "destructive",
-      })
+      });
       
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -143,8 +134,8 @@ export function QAChat({ analysis }: QAChatProps) {
         <div className="border-t border-border p-4">
           <form
             onSubmit={(e) => {
-              e.preventDefault()
-              handleSend()
+              e.preventDefault();
+              handleSend();
             }}
             className="flex gap-2"
           >
@@ -161,5 +152,5 @@ export function QAChat({ analysis }: QAChatProps) {
         </div>
       </Card>
     </div>
-  )
+  );
 }

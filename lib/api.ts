@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://struttingly-chargeless-aubri.ngrok-free.dev"
+const API_BASE_URL = "https://api.filterai.uz/"
 
 export async function analyzePitchDeck(file: File) {
   const formData = new FormData()

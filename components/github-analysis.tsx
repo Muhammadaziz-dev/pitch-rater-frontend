@@ -1,62 +1,55 @@
 "use client"
 
-import type React from "react"
+import { analyzeGitHubRepository } from "@/lib/api";
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Loader2, Github } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Github } from "lucide-react";
 
-import { useToast } from "@/hooks/use-toast"
-import { AnalysisResults } from "@/components/analysis-results"
+import { useToast } from "@/hooks/use-toast";
+import { AnalysisResults } from "@/components/analysis-results";
 
 interface GitHubAnalysisProps {
-  onAnalysisComplete?: (data: any) => void
+  onAnalysisComplete?: (data: any) => void;
 }
 
 export function GitHubAnalysis({ onAnalysisComplete }: GitHubAnalysisProps) {
-  const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState<any>(null)
-  const [repoUrl, setRepoUrl] = useState("")
-  const { toast } = useToast()
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<any>(null);
+  const [repoUrl, setRepoUrl] = useState("");
+  const { toast } = useToast();
   
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const response = await fetch("https://struttingly-chargeless-aubri.ngrok-free.dev/analyze-github-repository", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repository_url: repoUrl }),
-      })
-
-      if (!response.ok) throw new Error("Analysis failed")
-
-      const data = await response.json()
-      setResults(data)
-      onAnalysisComplete?.(data)
+      const data = await analyzeGitHubRepository(repoUrl);
+      setResults(data);
+      onAnalysisComplete?.(data);
 
       toast({
         title: "Analysis complete!",
         description: "GitHub repository has been analyzed successfully.",
-      })
+      });
 
       
     } catch (error) {
-      console.error("[v0] GitHub analysis error:", error)
+      console.error("[v0] GitHub analysis error:", error);
       toast({
         title: "Analysis failed",
         description: "Failed to analyze repository. Please try again.",
         variant: "destructive",
-      })
+      });
       
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -90,5 +83,5 @@ export function GitHubAnalysis({ onAnalysisComplete }: GitHubAnalysisProps) {
 
       {results && <AnalysisResults data={results} type="github" />}
     </div>
-  )
+  );
 }

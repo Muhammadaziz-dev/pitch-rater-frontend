@@ -1,68 +1,61 @@
 "use client"
 
-import type React from "react"
+import { analyzeMarketSize } from "@/lib/api";
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Loader2, TrendingUp } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, TrendingUp } from "lucide-react";
 
-import { useToast } from "@/hooks/use-toast"
-import { MarketResearchResults } from "@/components/market-research-results"
+import { useToast } from "@/hooks/use-toast";
+import { MarketResearchResults } from "@/components/market-research-results";
 
 interface MarketResearchProps {
-  onAnalysisComplete?: (data: any) => void
+  onAnalysisComplete?: (data: any) => void;
 }
 
 export function MarketResearch({ onAnalysisComplete }: MarketResearchProps) {
-  const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState<any>(null)
-  const { toast } = useToast()
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<any>(null);
+  const { toast } = useToast();
   
   const [formData, setFormData] = useState({
     company_name: "",
     business_description: "",
     industry: "",
     region: "Global",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const response = await fetch("https://struttingly-chargeless-aubri.ngrok-free.dev/analyze-market-size", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-
-      if (!response.ok) throw new Error("Analysis failed")
-
-      const data = await response.json()
-      setResults(data)
-      onAnalysisComplete?.(data)
+      const data = await analyzeMarketSize(formData);
+      setResults(data);
+      onAnalysisComplete?.(data);
 
       toast({
         title: "Analysis complete!",
         description: "Market research has been completed successfully.",
-      })
+      });
 
       
     } catch (error) {
-      console.error("[v0] Market research error:", error)
+      console.error("[v0] Market research error:", error);
       toast({
         title: "Analysis failed",
         description: "Failed to complete market research. Please try again.",
         variant: "destructive",
-      })
+      });
       
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -131,5 +124,5 @@ export function MarketResearch({ onAnalysisComplete }: MarketResearchProps) {
 
       {results && <MarketResearchResults data={results} />}
     </div>
-  )
+  );
 }
