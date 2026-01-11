@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Upload, FileText, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { usePolling } from "@/hooks/use-polling"
-import { analyzePitchDeck, analyzeMarketSize, scoreStartup, getJob } from "@/lib/api"
+import { analyzePitchDeck, analyzeMarketSize, scoreStartup, skepticismFlags, getJob } from "@/lib/api"
 
 interface PitchDeckUploadProps {
   onAnalysisComplete?: (data: any) => void
@@ -75,15 +75,19 @@ export function PitchDeckUpload({ onAnalysisComplete }: PitchDeckUploadProps) {
           })
 
           setAnalysisStep("scoring")
-          const scoreData = await scoreStartup(
-            deckAnalysisResult.claim_assumptions,
-            marketResearchData.market_research,
-          )
+          const [scoreData, skepticismData] = await Promise.all([
+            scoreStartup(deckAnalysisResult.claim_assumptions, marketResearchData.market_research),
+            skepticismFlags(deckAnalysisResult.claim_assumptions),
+          ])
+
+          const investorModes = deckAnalysisResult?.investor_modes || {}
 
           const finalData = {
             ...deckAnalysisResult,
             ...marketResearchData,
             ...scoreData,
+            ...skepticismData,
+            investor_modes: investorModes,
           }
 
           onAnalysisComplete?.(finalData)

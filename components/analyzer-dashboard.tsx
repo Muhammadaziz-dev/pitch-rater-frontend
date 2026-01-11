@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { PitchDeckUpload } from "@/components/pitch-deck-upload"
 import { VideoUpload } from "@/components/video-upload"
 import { MarketResearch } from "@/components/market-research"
@@ -15,11 +16,51 @@ type AnalysisType = "pitch-deck" | "video" | "market" | "github" | "complete"
 export function AnalyzerDashboard() {
   const [activeAnalysis, setActiveAnalysis] = useState<any>(null)
   const [analysisType, setAnalysisType] = useState<AnalysisType | null>(null)
+  const storageKey = "pitch-rater:analysis-cache"
+  const cacheTtlMs = 6 * 60 * 60 * 1000
 
   const handleAnalysisComplete = (data: any, type: AnalysisType) => {
     setActiveAnalysis(data)
     setAnalysisType(type)
   }
+
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(storageKey)
+      if (!cached) return
+      const parsed = JSON.parse(cached)
+      if (!parsed?.data || !parsed?.type || !parsed?.timestamp) {
+        localStorage.removeItem(storageKey)
+        return
+      }
+      if (Date.now() - parsed.timestamp > cacheTtlMs) {
+        localStorage.removeItem(storageKey)
+        return
+      }
+      const shouldKeep = window.confirm("We found previous analysis results. Keep them?")
+      if (!shouldKeep) {
+        localStorage.removeItem(storageKey)
+        return
+      }
+      setActiveAnalysis(parsed.data)
+      setAnalysisType(parsed.type)
+    } catch {
+      localStorage.removeItem(storageKey)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!activeAnalysis || !analysisType) {
+      localStorage.removeItem(storageKey)
+      return
+    }
+    const payload = {
+      data: activeAnalysis,
+      type: analysisType,
+      timestamp: Date.now(),
+    }
+    localStorage.setItem(storageKey, JSON.stringify(payload))
+  }, [activeAnalysis, analysisType])
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -102,7 +143,24 @@ export function AnalyzerDashboard() {
         </TabsContent>
       </Tabs>
 
-      {activeAnalysis && analysisType && <AnalysisResults data={activeAnalysis} type={analysisType} />}
+      {activeAnalysis && analysisType && (
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setActiveAnalysis(null)
+                setAnalysisType(null)
+                localStorage.removeItem(storageKey)
+              }}
+            >
+              Clear cached results
+            </Button>
+          </div>
+          <AnalysisResults data={activeAnalysis} type={analysisType} />
+        </div>
+      )}
     </div>
   )
 }

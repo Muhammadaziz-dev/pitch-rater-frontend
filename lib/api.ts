@@ -154,6 +154,22 @@ export async function scoreStartup(claim_assumptions: any, market_research: any)
   return response.json()
 }
 
+export async function skepticismFlags(claim_assumptions: any) {
+  const response = await fetch(`${API_BASE_URL}/skepticism-flags`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ claim_assumptions }),
+  })
+
+  if (!response.ok) {
+    throw new Error("Failed to get skepticism flags")
+  }
+
+  return response.json()
+}
+
 export async function investorPersonas(transcript: string) {
   const response = await fetch(`${API_BASE_URL}/investor-personas`, {
     method: "POST",
@@ -172,4 +188,3 @@ export async function investorPersonas(transcript: string) {
 
   return response.json()
 }
-

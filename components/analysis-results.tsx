@@ -56,7 +56,7 @@ export function AnalysisResults({ data, type }: AnalysisResultsProps) {
       ratings: baseData.investor_simulation?.scores || {},
       verdict: baseData.investor_simulation?.verdict,
       overallScore: baseData.investor_simulation?.overall_score,
-      investorModes: baseData.investor_modes || {},
+      investorModes: baseData.investor_modes || baseData.analysis?.investor_modes || {},
       transcript: baseData.transcript || null,
       topBlockers: baseData.top_blockers || [],
       actionPlan: baseData.next_actions || [],
@@ -112,12 +112,14 @@ export function AnalysisResults({ data, type }: AnalysisResultsProps) {
         </>
       )}
 
-      <PitchSummary
-        isOpen={openSections.summary}
-        toggleOpen={() => toggleSection("summary")}
-        companyOverview={companyOverview}
-        summary={pData.summary}
-      />
+      {type !== "market" && (
+        <PitchSummary
+          isOpen={openSections.summary}
+          toggleOpen={() => toggleSection("summary")}
+          companyOverview={companyOverview}
+          summary={pData.summary}
+        />
+      )}
 
       <RawAnalysis data={data} />
     </div>

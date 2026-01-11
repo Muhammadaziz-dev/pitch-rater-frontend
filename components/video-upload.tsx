@@ -6,7 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Upload, Video, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { usePolling } from "@/hooks/use-polling"
-import { analyzeVideoPitch, extractClaimsText, analyzeMarketSize, scoreStartup, investorPersonas, getJob } from "@/lib/api"
+import {
+  analyzeVideoPitch,
+  extractClaimsText,
+  analyzeMarketSize,
+  scoreStartup,
+  investorPersonas,
+  skepticismFlags,
+  getJob,
+} from "@/lib/api"
 
 interface VideoUploadProps {
   onAnalysisComplete?: (data: any) => void
@@ -85,9 +93,26 @@ export function VideoUpload({ onAnalysisComplete }: VideoUploadProps) {
           }
 
           setAnalysisStep("scoring")
-          const scoreData = await scoreStartup(claimsData.claim_assumptions, marketResearchData.market_research)
+          const [scoreData, skepticismData] = await Promise.all([
+            scoreStartup(claimsData.claim_assumptions, marketResearchData.market_research),
+            skepticismFlags(claimsData.claim_assumptions),
+          ])
 
-          const finalData = { ...videoData, ...claimsData, ...marketResearchData, ...scoreData, ...personasData }
+          const investorModes =
+            personasData?.investor_modes ||
+            personasData?.analysis?.investor_modes ||
+            videoData?.analysis?.investor_modes ||
+            {}
+
+          const finalData = {
+            ...videoData,
+            ...claimsData,
+            ...marketResearchData,
+            ...scoreData,
+            ...skepticismData,
+            ...personasData,
+            investor_modes: investorModes,
+          }
           onAnalysisComplete?.(finalData)
           setAnalysisStep("complete")
           toast({ title: "Analysis Complete", description: "Video pitch analysis is ready." })
