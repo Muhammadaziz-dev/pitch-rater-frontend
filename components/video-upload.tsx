@@ -68,7 +68,8 @@ export function VideoUpload({ onAnalysisComplete }: VideoUploadProps) {
       if (jobResult.status === "completed") {
         stopPolling()
         try {
-          const videoData = jobResult.result
+          const rawResult = jobResult.result?.result ?? jobResult.result
+          const videoData = rawResult
           if (!videoData?.transcript || !videoData?.analysis) {
             throw new Error("Video analysis result is missing transcript or analysis.")
           }
@@ -102,6 +103,8 @@ export function VideoUpload({ onAnalysisComplete }: VideoUploadProps) {
             personasData?.investor_modes ||
             personasData?.analysis?.investor_modes ||
             videoData?.analysis?.investor_modes ||
+            videoData?.investor_modes ||
+            jobResult?.result?.analysis?.investor_modes ||
             {}
 
           const finalData = {

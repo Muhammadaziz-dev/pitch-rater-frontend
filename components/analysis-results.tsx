@@ -94,11 +94,13 @@ export function AnalysisResults({ data, type }: AnalysisResultsProps) {
             toggleOpen={() => toggleSection("breakdown")}
             ratings={pData.ratings}
           />
-          <InvestorPersonas
-            isOpen={openSections.personas}
-            toggleOpen={() => toggleSection("personas")}
-            investorModes={pData.investorModes}
-          />
+          {type !== "pitch-deck" && (
+            <InvestorPersonas
+              isOpen={openSections.personas}
+              toggleOpen={() => toggleSection("personas")}
+              investorModes={pData.investorModes}
+            />
+          )}
           <ActionPlan
             isOpen={openSections.actionPlan}
             toggleOpen={() => toggleSection("actionPlan")}

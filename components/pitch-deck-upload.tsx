@@ -60,7 +60,8 @@ export function PitchDeckUpload({ onAnalysisComplete }: PitchDeckUploadProps) {
       if (jobResult.status === "completed") {
         stopPolling()
         try {
-          const deckAnalysisResult = jobResult.result
+          const rawResult = jobResult.result?.result ?? jobResult.result
+          const deckAnalysisResult = rawResult
           if (!deckAnalysisResult || !deckAnalysisResult.summary || !deckAnalysisResult.claim_assumptions) {
             throw new Error("Analysis result is missing expected data.")
           }
@@ -80,7 +81,11 @@ export function PitchDeckUpload({ onAnalysisComplete }: PitchDeckUploadProps) {
             skepticismFlags(deckAnalysisResult.claim_assumptions),
           ])
 
-          const investorModes = deckAnalysisResult?.investor_modes || {}
+          const investorModes =
+            deckAnalysisResult?.investor_modes ||
+            deckAnalysisResult?.analysis?.investor_modes ||
+            jobResult?.result?.investor_modes ||
+            {}
 
           const finalData = {
             ...deckAnalysisResult,
